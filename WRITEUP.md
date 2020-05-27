@@ -1,18 +1,21 @@
 # Project Write-Up
 
 
-##Model Selection and Conversion via Model Optimizer
+## Model Selection and Conversion via Model Optimizer
 
 Object Detection Model Selected : 
-An object-detection TensorFlow model named SSD MobileNet V2 COCO (Link: http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v2_coco_2018_03_29.tar.gz)
+
+An object-detection TensorFlow model named [SSD MobileNet V2 COCO](http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v2_coco_2018_03_29.tar.gz).
 
 To obtain xml and bin files, the model was converted via Model Optimizer using following command line argument:
-python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
+
+`python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json`
 
 
 ## Explaining Custom Layers
 
 All the layers used by this object detection model are supported by the Model Optimizer, hence does not involve handling/support for any custom layer. 
+
 But, if the need arises, a custom layer can be handled in following manner:
 
 	- Register the custom layer as an extension to Model Optimizer, in case of Tensorflow or Caffe models
@@ -28,25 +31,25 @@ But, if the need arises, a custom layer can be handled in following manner:
 	- In TensorFlow, either replace the unsupported subgraph(operation flow) with a different supported one , or offload that computation segment to TensorFlow
 
 Some of the potential reasons for handling custom layers are:
+
 Model Optimizer generally supports those layers which are widely used for inference, across different frameworks.
 All the types of functionality provided in the native framework are not necessarily supported by the Model Optimizer, hence we need special handle mechanism to support these custom layers. 
+
 These layers are typically only needed for special and task-specific operation in a given framework. Hence, one of the ways to handle such is to offload computation to the native framework, or use some extension to support these operations.
 If not done so, it would lead to breakage in the flow of the model, rendering it unusable for deployment at the network edge.
 
 
 ## Comparing Model Performance
 
-My method(s) to compare models before and after conversion to Intermediate Representations were...
-
-The difference between model accuracy pre- and post-conversion :
-	- The accuracy of the model pre-conversion  : 22 mAP COCO
-	- The accuracy of the model post-conversion : 20 mAP COCO
+My methods to compare models before and after conversion to Intermediate Representations were...
 
 The size difference of the model pre- and post-conversion :
+
 	- The size of the model pre-conversion  : 66.4 MB
 	- The size of the model post-conversion : 64.1 + 0.256 = 64.356 MB
 
 The inference time of the model pre- and post-conversion :
+
 	- The inference time of the model pre-conversion  : 100 ms
 	- The inference time of the model post-conversion : 68 ms (nearly 1.5x faster)
 
@@ -54,6 +57,7 @@ The inference time of the model pre- and post-conversion :
 ## Assess Model Use Cases
 
 Some of the potential use cases of the people counter app are:
+
 	- Mass Surveillance in a pandemic: The best use-case of this app can be to ensure social distancing and well as avoid overcrowding during this COVID-19 pandemic. The app can be easily expanded to focus on these scenarios,
 		and can be deployed at various public and crowded places like shopping malls, stores, parks, cafes, educational institutes, etc.
 	
@@ -86,7 +90,9 @@ All of these factors greatly impact the application, and are directly dependant 
 In investigating potential people counter models, I tried out a tensorflow-based light-weight and fast object detection model, trained on COOC dataset.
 
 The following steps helped in successful conversion of the model to its IR form :
-  - wget http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v2_coco_2018_03_29.tar.gz
-  - tar -xvf ssd_mobilenet_v2_coco_2018_03_29.tar.gz
-  - cd ssd_mobilenet_v2_coco_2018_03_29
-  - python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
+
+  - `wget http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v2_coco_2018_03_29.tar.gz`
+  - `tar -xvf ssd_mobilenet_v2_coco_2018_03_29.tar.gz`
+  - `cd ssd_mobilenet_v2_coco_2018_03_29`
+  - `python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json`
+  
